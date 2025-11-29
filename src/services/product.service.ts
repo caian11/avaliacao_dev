@@ -1,5 +1,6 @@
 import { ProductRepository } from '../repositories/product.repository';
 import { GroupRepository } from '../repositories/group.repository';
+import {NotFoundError} from "@/errors/http.erros";
 
 export class ProductService {
   private productRepository: ProductRepository;
@@ -17,7 +18,7 @@ export class ProductService {
   async getProductById(id: number) {
     const product = await this.productRepository.findById(id);
     if (!product) {
-      throw new Error('Product not found');
+      throw new NotFoundError('Product not found');
     }
     return product;
   }
@@ -29,8 +30,14 @@ export class ProductService {
     stock: number;
     groupId?: number;
   }) {
-    // PROBLEMA INTENCIONAL: Não valida se grupo existe quando groupId é fornecido
-    // PROBLEMA INTENCIONAL: Não valida se price é negativo
+      if (data.groupId) {
+          const group = await this.groupRepository.findById(data.groupId);
+
+          if (!group) {
+              throw new NotFoundError('Group not found');
+          }
+      }
+
     return await this.productRepository.create(data);
   }
 
@@ -46,16 +53,15 @@ export class ProductService {
       throw new Error('Product not found');
     }
 
-    // PROBLEMA INTENCIONAL: Permite atualizar estoque para negativo
     return await this.productRepository.update(id, data);
   }
 
   async deleteProduct(id: number) {
-    await this.productRepository.delete(id);
+   const product = await this.getProductById(id);
+   return await this.productRepository.delete(id);
   }
 
   async searchProducts(searchTerm: string) {
-    // PROBLEMA INTENCIONAL: Usa método com SQL injection potencial
     return await this.productRepository.searchByName(searchTerm);
   }
 

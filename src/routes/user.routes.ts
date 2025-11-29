@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { validate } from '../middleware/validation.middleware';
-import { createUserSchema, updateUserSchema } from '../validators/user.validator';
+import { createUserSchema, updateUserSchema, addUserToGroupSchema, removeUserFromGroupSchema } from '../validators/user.validator';
 
 const router = Router();
 const userController = new UserController();
@@ -13,8 +13,8 @@ router.put('/:id', validate(updateUserSchema), userController.updateUser.bind(us
 router.delete('/:id', userController.deleteUser.bind(userController));
 
 router.get('/:id/groups', userController.getUserGroups.bind(userController));
-router.post('/:id/groups', userController.addUserToGroup.bind(userController));
-router.delete('/:id/groups', userController.removeUserFromGroup.bind(userController));
+router.post('/:id/groups', validate(addUserToGroupSchema), userController.addUserToGroup.bind(userController),);
+router.delete('/:id/groups', validate(removeUserFromGroupSchema), userController.removeUserFromGroup.bind(userController),);
 
 export default router;
 

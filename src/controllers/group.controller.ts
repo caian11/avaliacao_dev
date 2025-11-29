@@ -32,7 +32,8 @@ export class GroupController {
       const group = await this.groupService.createGroup(req.body);
       res.status(201).json(group);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+        const status = error.status || 500;
+        res.status(status).json({ error: error.message });
     }
   }
 
@@ -42,7 +43,8 @@ export class GroupController {
       const group = await this.groupService.updateGroup(id, req.body);
       res.json(group);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+        const status = error.status || 500;
+        res.status(status).json({ error: error.message });
     }
   }
 
@@ -52,7 +54,8 @@ export class GroupController {
       await this.groupService.deleteGroup(id);
       res.status(204).send();
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+        const status = error.status || 500;
+        res.status(status).json({ error: error.message });
     }
   }
 

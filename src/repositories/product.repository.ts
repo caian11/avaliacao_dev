@@ -3,11 +3,17 @@ import { products, groups } from '../database/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export class ProductRepository {
-  async findAll() {
-    return await db.select().from(products);
-  }
+    async findAll(page = 1, pageSize = 20) {
+        const offset = (page - 1) * pageSize;
 
-  async findById(id: number) {
+        return db
+            .select()
+            .from(products)
+            .limit(pageSize)
+            .offset(offset);
+    }
+
+    async findById(id: number) {
     const result = await db.select().from(products).where(eq(products.id, id));
     return result[0];
   }
@@ -45,13 +51,14 @@ export class ProductRepository {
     await db.delete(products).where(eq(products.id, id));
   }
 
-  // PROBLEMA INTENCIONAL: SQL Injection potencial e falta de validação
   async searchByName(searchTerm: string) {
-    const query = `SELECT * FROM products WHERE name LIKE '%${searchTerm}%'`;
-    return await db.execute(sql.raw(query));
+    const likeTerm = `%${searchTerm}%`;
+
+    const query = sql`SELECT * FROM products WHERE name LIKE ${likeTerm}`;
+    return db.execute(query);
   }
 
-  async findByGroup(groupId: number) {
+    async findByGroup(groupId: number) {
     return await db
       .select()
       .from(products)

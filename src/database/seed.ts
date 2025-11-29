@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { db } from './connection';
 import { users, groups, products, userGroups } from './schema';
 import bcrypt from 'bcryptjs';

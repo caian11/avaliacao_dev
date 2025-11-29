@@ -13,7 +13,8 @@ export class UserController {
       const users = await this.userService.getAllUsers();
       res.json(users);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+        const status = error.status || 500;
+        res.status(status).json({ error: error.message });
     }
   }
 
@@ -30,9 +31,10 @@ export class UserController {
   async createUser(req: Request, res: Response) {
     try {
       const user = await this.userService.createUser(req.body);
-      res.status(201).json(user);
+      return res.status(201).json(user);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      const status = error.status || 500;
+      return res.status(status).json({ error: error.message });
     }
   }
 
@@ -42,7 +44,8 @@ export class UserController {
       const user = await this.userService.updateUser(id, req.body);
       res.json(user);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      const status = error.status || 500;
+      res.status(status).json({ error: error.message });
     }
   }
 
@@ -52,8 +55,8 @@ export class UserController {
       await this.userService.deleteUser(id);
       res.status(204).send();
     } catch (error: any) {
-      // PROBLEMA INTENCIONAL: Não trata adequadamente quando usuário não existe
-      res.status(500).json({ error: error.message });
+      const status = error.status || 500;
+      res.status(status).json({ error: error.message });
     }
   }
 
@@ -63,7 +66,8 @@ export class UserController {
       const groups = await this.userService.getUserGroups(id);
       res.json(groups);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+        const status = error.status || 500;
+        res.status(status).json({ error: error.message });
     }
   }
 
@@ -74,7 +78,8 @@ export class UserController {
       const result = await this.userService.addUserToGroup(userId, groupId);
       res.status(201).json(result);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+        const status = error.status || 500;
+        res.status(status).json({ error: error.message });
     }
   }
 
@@ -85,7 +90,8 @@ export class UserController {
       await this.userService.removeUserFromGroup(userId, groupId);
       res.status(204).send();
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+        const status = error.status || 500;
+        res.status(status).json({ error: error.message });
     }
   }
 }

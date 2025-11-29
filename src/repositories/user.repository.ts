@@ -1,20 +1,55 @@
 import { db } from '../database/connection';
 import { users, userGroups, groups } from '../database/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
+import {ConflictError, NotFoundError} from "@/errors/http.erros";
 
 export class UserRepository {
   async findAll() {
-    return await db.select().from(users);
+      return db
+          .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+              role: users.role,
+              active: users.active,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+          })
+          .from(users)
+          .orderBy(asc(users.name));
   }
 
-  async findById(id: number) {
-    const result = await db.select().from(users).where(eq(users.id, id));
-    return result[0];
-  }
+    async findById(id: number) {
+        const [user] = await db
+            .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                role: users.role,
+                active: users.active,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+            })
+            .from(users)
+            .where(eq(users.id, id));
 
-  async findByEmail(email: string) {
+        return user;
+    }
+
+    async findByEmail(email: string, userId: number) {
     const result = await db.select().from(users).where(eq(users.email, email));
-    return result[0];
+
+        if (!result.length) {
+            return;
+        }
+
+        const user = result[0];
+
+        if (user.id === userId) {
+            return;
+        }
+
+        throw new ConflictError('E-mail já cadastrado');
   }
 
   async create(data: {
@@ -54,6 +89,14 @@ export class UserRepository {
   }
 
   async delete(id: number) {
+    const userGroups = await this.getUserGroups(id);
+    if (userGroups && userGroups.length) {
+      await Promise.all(userGroups.map((g: any) => {
+        const groupId = g.groupId ?? g.id ?? g.group_id;
+        return this.removeUserFromGroup(id, groupId);
+      }));
+    }
+    
     await db.delete(users).where(eq(users.id, id));
   }
 
@@ -73,7 +116,6 @@ export class UserRepository {
   }
 
   async removeUserFromGroup(userId: number, groupId: number) {
-    // PROBLEMA INTENCIONAL: Não verifica se a relação existe antes de deletar
     await db
       .delete(userGroups)
       .where(and(eq(userGroups.userId, userId), eq(userGroups.groupId, groupId)));

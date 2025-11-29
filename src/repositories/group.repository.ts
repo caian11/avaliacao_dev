@@ -12,6 +12,11 @@ export class GroupRepository {
     return result[0];
   }
 
+    async findByName(name: string) {
+    const groups = await this.findAll();
+    return groups.find((g: any) => g.name === name) ?? null;
+  }
+
   async create(data: { name: string; description?: string }) {
     const result = await db.insert(groups).values(data).returning();
     return result[0];
@@ -33,22 +38,20 @@ export class GroupRepository {
     await db.delete(groups).where(eq(groups.id, id));
   }
 
-  async getGroupUsers(groupId: number) {
-    const userGroupRecords = await db
-      .select()
-      .from(userGroups)
-      .where(eq(userGroups.groupId, groupId));
+    async getGroupUsers(groupId: number) {
+        const rows = await db
+            .select({
+                user: users,
+            })
+            .from(userGroups)
+            .innerJoin(users, eq(userGroups.userId, users.id))
+            .where(eq(userGroups.groupId, groupId));
 
-    const userIds = userGroupRecords.map(ug => ug.userId);
-    
-    // PROBLEMA INTENCIONAL: N+1 Query Problem
-    const groupUsers = [];
-    for (const userId of userIds) {
-      const user = await db.select().from(users).where(eq(users.id, userId));
-      groupUsers.push(user[0]);
+        return rows.map(r => {
+            const { password, ...safeUser } = r.user;
+            return safeUser;
+        });
     }
-    
-    return groupUsers;
-  }
+
 }
 

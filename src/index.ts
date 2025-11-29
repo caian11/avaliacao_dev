@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.routes';
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/products', productRoutes);
+app.use(express.json());
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
